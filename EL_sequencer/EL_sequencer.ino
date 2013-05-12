@@ -19,13 +19,26 @@
 #define STATUS 13
 /// Battery monitor ADC
 #define BATTERY 7
-#define LOOP_PERIOD 3900 //us ~ 256Hz
-
+/// Motor PWM output for bubble rotor
+#define ROTOR  10
+/// Motor PWM output for bubble blower
+#define BLOWER 11
+/// Debounced button input
 Bounce toggle = Bounce(20, A0);
 
-float battery_scale = 20.0; ///< Battery scale factor for ADC. TODO, replace with real value
+/// Main loop target period
+#define LOOP_PERIOD 3900 //us ~ 256Hz
+/// Battery scale factor for ADC. TODO, replace with real value
+float battery_scale = 20.0;
+/// Motor shut off value
+#define MOTOR_OFF 0
+/// Bubble rotor set speed
+#define ROTOR_ON 128
+/// Bubble blower set speed
+#define BLOWER_ON 70
+
 float cur_bat;
-int bar_graph[] = {10, 11, 12};
+int bar_graph[] = {A1, A2, A3};
 byte loop_cnt, ramp, el_phase, phase_cnt;
 int phaser[] = {A, B, C};
 
@@ -40,13 +53,18 @@ void setup() {
   /// Status pin on 
   pinMode(STATUS, OUTPUT);
   /// Use the internal 1.1V analog reference.
-
   analogReference(INTERNAL);
   /// Setup toggle button
   pinMode(A0, INPUT_PULLUP);
+  /// PWM setup
+  pinMode(ROTOR,  OUTPUT);
+  analogWrite(ROTOR, MOTOR_OFF);
+  pinMode(BLOWER, OUTPUT);
+  analogWrite(BLOWER, MOTOR_OFF);
   /// bling ramp
   ramp = 0;
-  /// EL sequencer phase
+  el_phase  = 0;
+  phase_cnt = 0;
 }
 
 void loop() 
@@ -72,7 +90,9 @@ void loop()
 
   if (cur_bat > 11.5f) { // Good battery
      digitalWrite(H, 1); // Always on if battery is good
-
+     analogWrite(ROTOR,  ROTOR_ON);
+     analogWrite(BLOWER, BLOWER_ON);
+     
      if (toggle.update() && toggle.read()) {
         if (ramp == 0) ramp = 250;
         else ramp = 0;
@@ -96,6 +116,8 @@ void loop()
   }
   else { // Battery is near dead shut things down
     for (i=A; i<=H; i++) digitalWrite(i, 0);
+    analogWrite(ROTOR, MOTOR_OFF);
+    analogWrite(BLOWER, MOTOR_OFF);
   }
 
   loop_time = micros() - lstart;
