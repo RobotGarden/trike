@@ -58,7 +58,7 @@ void loop()
 
   lstart = micros();
 
-  loop_cnt++
+  loop_cnt++;
 
   // battery monitor
   cur_bat = ((float)analogRead(BATTERY))*battery_scale;
@@ -70,7 +70,7 @@ void loop()
   else digitalWrite(bar_graph[0], loop_cnt > 128);
 
 
-  if (cur-bat > 11.5f) { // Good battery
+  if (cur_bat > 11.5f) { // Good battery
      digitalWrite(H, 1); // Always on if battery is good
 
      if (toggle.update() && toggle.read()) {
@@ -102,6 +102,7 @@ void loop()
 
   if (loop_time > LOOP_PERIOD) { // Taking too long to execute
     digitalWrite(STATUS, 1);
+  }
   else {
     digitalWrite(STATUS, loop_cnt > 128);
     delayMicroseconds(LOOP_PERIOD - loop_time);
