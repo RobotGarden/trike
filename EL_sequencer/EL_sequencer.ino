@@ -33,9 +33,9 @@ float battery_scale = 67.0;
 /// Motor shut off value
 #define MOTOR_OFF 0
 /// Bubble rotor set speed
-#define ROTOR_ON 10
+#define ROTOR_ON 20
 /// Bubble blower set speed
-#define BLOWER_ON 70
+#define BLOWER_ON 128
 
 float cur_bat;
 int bar_graph[] = {A1, A2, A3};
