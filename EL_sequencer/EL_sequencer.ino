@@ -29,7 +29,7 @@ Bounce toggle = Bounce(20, A0);
 /// Main loop target period
 #define LOOP_PERIOD 3900 //us ~ 256Hz
 /// Battery scale factor for ADC. TODO, replace with real value
-float battery_scale = 67.0;
+float battery_scale = 67.0 * 1.1 / 1024.0;
 /// Motor shut off value
 #define MOTOR_OFF 0
 /// Bubble rotor set speed
