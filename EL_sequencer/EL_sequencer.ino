@@ -38,7 +38,6 @@ float battery_scale = 67.0 * 1.1 / 1024.0;
 #define BLOWER_ON 128
 
 float cur_bat;
-int bar_graph[] = {A1, A2, A3};
 byte loop_cnt, ramp, el_phase, phase_cnt;
 int phaser[] = {A, B, C};
 
@@ -80,39 +79,39 @@ void loop()
 
   // battery monitor
   cur_bat = ((float)analogRead(BATTERY))*battery_scale;
-  digitalWrite(bar_graph[2], cur_bat > 11.9f);
-
-  digitalWrite(bar_graph[1], cur_bat > 11.7f);
-  if (cur_bat > 11.5f) digitalWrite(bar_graph[0], 1);
-
-  else digitalWrite(bar_graph[0], loop_cnt > 128);
-
 
   if (cur_bat > 11.5f) { // Good battery
-     digitalWrite(H, 1); // Always on if battery is good
-     analogWrite(ROTOR,  ROTOR_ON);
-     analogWrite(BLOWER, BLOWER_ON);
+  
+    if (cur_bat > 11.7f) { // Normal operation
+      digitalWrite(H, 1); // Always on if battery is good
+    }
+    else { // Time to go charge the battery, indicate something is up
+      digitalWrite(H, loop_cnt > 128); // Blink at just under 1Hz
+    }  
      
-     if (toggle.update() && toggle.read()) {
-        if (ramp == 0) ramp = 250;
-        else ramp = 0;
-     }
+    analogWrite(ROTOR,  ROTOR_ON);
+    analogWrite(BLOWER, BLOWER_ON);
+     
+    if (toggle.update() && toggle.read()) {
+      if (ramp == 0) ramp = 250;
+      else ramp = 0;
+    }
 
-     if (ramp > 0) {
-       for (i=0; i<3; i++) {
-           digitalWrite(phaser[i], i==el_phase);
-       }
-       if (phase_cnt++ > ramp) {
-         if (++el_phase > 2) el_phase = 0;
-         if (ramp > 25) ramp -= 2;
-         phase_cnt = 0;
-       }
-     }
-     else { // If not ramping
-       for(i=0; i<3; i++) { // Turn them all on
-         digitalWrite(phaser[i], 1); 
-       }
-     }
+    if (ramp > 0) {
+      for (i=0; i<3; i++) {
+          digitalWrite(phaser[i], i==el_phase);
+      }
+      if (phase_cnt++ > ramp) {
+        if (++el_phase > 2) el_phase = 0;
+        if (ramp > 25) ramp -= 2;
+        phase_cnt = 0;
+      }
+    }
+    else { // If not ramping
+      for(i=0; i<3; i++) { // Turn them all on
+        digitalWrite(phaser[i], 1); 
+      }
+    }
   }
   else { // Battery is near dead shut things down
     for (i=A; i<=H; i++) digitalWrite(i, 0);
