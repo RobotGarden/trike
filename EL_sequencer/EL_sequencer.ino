@@ -92,7 +92,7 @@ void loop()
     analogWrite(ROTOR,  ROTOR_ON);
     analogWrite(BLOWER, BLOWER_ON);
      
-    if (toggle.update() && toggle.read()) {
+    if (toggle.update() && (toggle.read() == 0)) {
       if (ramp == 0) ramp = 250;
       else ramp = 0;
     }
