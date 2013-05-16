@@ -29,11 +29,11 @@ Bounce toggle = Bounce(20, A0);
 /// Main loop target period
 #define LOOP_PERIOD 3900 //us ~ 256Hz
 /// Battery scale factor for ADC. TODO, replace with real value
-float battery_scale = 20.0;
+float battery_scale = 67.0;
 /// Motor shut off value
 #define MOTOR_OFF 0
 /// Bubble rotor set speed
-#define ROTOR_ON 128
+#define ROTOR_ON 10
 /// Bubble blower set speed
 #define BLOWER_ON 70
 
@@ -55,7 +55,7 @@ void setup() {
   /// Use the internal 1.1V analog reference.
   analogReference(INTERNAL);
   /// Setup toggle button
-  pinMode(A0, INPUT_PULLUP);
+  pinMode(A0, INPUT);
   /// PWM setup
   pinMode(ROTOR,  OUTPUT);
   analogWrite(ROTOR, MOTOR_OFF);
