@@ -24,12 +24,12 @@
 /// Motor PWM output for bubble blower
 #define BLOWER 11
 /// Debounced button input
-Bounce toggle = Bounce(20, A0);
+Bounce toggle = Bounce(A4, 5);
 
 /// Main loop target period
-#define LOOP_PERIOD 3900 //us ~ 256Hz
-/// Battery scale factor for ADC. TODO, replace with real value
-float battery_scale = 67.0 * 1.1 / 1024.0;
+#define LOOP_PERIOD 39000 //us ~ 25Hz
+/// Battery scale factor for ADC. From manual calibation
+float battery_scale = 0.634;
 /// Motor shut off value
 #define MOTOR_OFF 0
 /// Bubble rotor set speed
@@ -45,6 +45,10 @@ void setup() {
   // Initialize the pins as outputs
 
   int i;
+  
+  Serial.begin(9600);
+  Serial.println("Hello world");
+  
   for (i=A; i<=H; i++) {
        pinMode(i, OUTPUT);
        digitalWrite(i, 0);
@@ -54,7 +58,7 @@ void setup() {
   /// Use the internal 1.1V analog reference.
   analogReference(INTERNAL);
   /// Setup toggle button
-  pinMode(A0, INPUT);
+  pinMode(A4, INPUT);
   /// PWM setup
   pinMode(ROTOR,  OUTPUT);
   analogWrite(ROTOR, MOTOR_OFF);
@@ -64,21 +68,25 @@ void setup() {
   ramp = 0;
   el_phase  = 0;
   phase_cnt = 0;
+  cur_bat = 12.0f;
 }
 
 void loop() 
 {  
 
   byte i;
-
+  float sample;
   unsigned long loop_time, lstart;
 
   lstart = micros();
 
   loop_cnt++;
+  
+  toggle.update();
 
   // battery monitor
-  cur_bat = ((float)analogRead(BATTERY))*battery_scale;
+  sample = ((float)analogRead(BATTERY))*battery_scale;
+  cur_bat = cur_bat * 0.999 + sample * 0.001; // Low pass filter
 
   if (cur_bat > 11.5f) { // Good battery
   
@@ -92,8 +100,8 @@ void loop()
     analogWrite(ROTOR,  ROTOR_ON);
     analogWrite(BLOWER, BLOWER_ON);
      
-    if (toggle.update() && (toggle.read() == 0)) {
-      if (ramp == 0) ramp = 250;
+    if (toggle.risingEdge()) {
+      if (ramp == 0) ramp = 50;
       else ramp = 0;
     }
 
@@ -103,7 +111,7 @@ void loop()
       }
       if (phase_cnt++ > ramp) {
         if (++el_phase > 2) el_phase = 0;
-        if (ramp > 25) ramp -= 2;
+        if (ramp > 2) ramp -= 2;
         phase_cnt = 0;
       }
     }
@@ -118,6 +126,13 @@ void loop()
     analogWrite(ROTOR, MOTOR_OFF);
     analogWrite(BLOWER, MOTOR_OFF);
   }
+
+  Serial.print(cur_bat);
+  Serial.print("\t");
+  Serial.print(ramp);
+  Serial.print("\t");
+  Serial.print(phase_cnt);
+  Serial.println("");
 
   loop_time = micros() - lstart;
 
