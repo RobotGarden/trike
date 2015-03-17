@@ -55,7 +55,7 @@ void setup() {
   /// Use the internal 1.1V analog reference.
   analogReference(INTERNAL);
   /// Setup toggle button
-  pinMode(A0, INPUT);
+  pinMode(A0, INPUT_PULLUP);
   /// PWM setup
   pinMode(ROTOR,  OUTPUT);
   analogWrite(ROTOR, MOTOR_OFF);
